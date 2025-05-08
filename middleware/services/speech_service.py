@@ -4,6 +4,7 @@ import wave
 import tempfile
 import os
 from threading import Thread
+from fastapi import UploadFile
 
 class SpeechService:
     _instance = None
@@ -14,7 +15,7 @@ class SpeechService:
         return cls._instance
 
     def __init__(self):
-        if not hasattr(self, "is_recording"):  # Verhindert erneute Initialisierung
+        if not hasattr(self, "is_recording"):
             # Azure API-Konfiguration
             self.AZURE_API_URL = "https://innovationazur3213328481.openai.azure.com/openai/deployments/gpt-4o-transcribe/audio/transcriptions?api-version=2025-03-01-preview"
             self.AZURE_API_KEY = "G9cw5SDql7Tw5IMTnC8xv0e55RBOjA6D6xXUInhtm5IrcFe7qkaFJQQJ99BEACfhMk5XJ3w3AAAAACOGUNNO"
@@ -54,7 +55,7 @@ class SpeechService:
         return {"message": "Die Sprachaufnahme wurde gestartet."}
 
     def stop_recording(self):
-        """Beendet die Sprachaufnahme, speichert die Datei und sendet sie an Azure."""
+        """Beendet die Sprachaufnahme und speichert die Datei."""
         if not self.is_recording:
             return {"message": "Es läuft keine Aufnahme, die beendet werden kann."}
 
@@ -75,14 +76,57 @@ class SpeechService:
             tmpfile_path = tmpfile.name
 
         print(f"Audio gespeichert unter: {tmpfile_path} ({os.path.getsize(tmpfile_path)} Bytes)")
+        return tmpfile_path
+
+    def stop_recording_use(self):
+        """Beendet die Sprachaufnahme und verwendet die Ergebnisse direkt."""
+        tmpfile_path = self.stop_recording()
+        transcribed_text = self.send_to_azure(tmpfile_path)
+        if transcribed_text:
+            self.recognized_text.append(transcribed_text)
+            print(f"Erkannte Sprache: {transcribed_text}")
+        return {"message": "Die Sprachaufnahme wurde beendet und verwendet.", "transcription": transcribed_text}
+
+    def stop_recording_load(self, file: UploadFile):
+        """Lädt eine hochgeladene WAV-Datei für die Verarbeitung."""
+        if file.content_type != "audio/wav":
+            return {"error": "Nur WAV-Dateien werden unterstützt."}
+
+        # Temporäre Datei speichern
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
+            tmpfile.write(file.file.read())
+            tmpfile_path = tmpfile.name
+
+        print(f"Datei hochgeladen und gespeichert unter: {tmpfile_path}")
 
         # Datei an Azure senden
         transcribed_text = self.send_to_azure(tmpfile_path)
         if transcribed_text:
             self.recognized_text.append(transcribed_text)
-            print(f"Erkannte Sprache: {transcribed_text}")
+            print(f"Erkannte Sprache aus Datei: {transcribed_text}")
+            return {"message": "Die Datei wurde geladen und verarbeitet.", "transcription": transcribed_text}
+        else:
+            return {"error": "Die Datei konnte nicht transkribiert werden."}
 
-        return {"message": "Die Sprachaufnahme wurde beendet.", "file_path": tmpfile_path, "transcription": transcribed_text}
+    def stop_recording_save(self):
+        """Beendet die Sprachaufnahme und speichert die Datei im Datenverzeichnis."""
+        # Beendet die Aufnahme und speichert die temporäre Datei
+        tmpfile_path = self.stop_recording()
+
+        # Zielverzeichnis definieren
+        data_directory = "/Users/maclaptop/Desktop/Innovation-Challenge/innovation/data"
+        if not os.path.exists(data_directory):
+            os.makedirs(data_directory)  # Verzeichnis erstellen, falls es nicht existiert
+
+        # Zielpfad für die Datei
+        file_name = os.path.basename(tmpfile_path)
+        target_path = os.path.join(data_directory, file_name)
+
+        # Datei verschieben
+        os.rename(tmpfile_path, target_path)
+
+        print(f"Datei wurde gespeichert unter: {target_path}")
+        return {"message": "Die Sprachaufnahme wurde beendet und gespeichert.", "file_path": target_path}
 
     def send_to_azure(self, audio_file_path):
         """Sendet die Audio-Datei an den Azure-Service und gibt die Transkription zurück."""
@@ -96,7 +140,7 @@ class SpeechService:
             response = requests.post(self.AZURE_API_URL, headers=headers, files=files)
 
         # Temporäre Datei löschen
-        # os.remove(audio_file_path)
+        os.remove(audio_file_path)
 
         if response.status_code == 200:
             result = response.json()

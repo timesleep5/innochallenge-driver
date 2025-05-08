@@ -1,5 +1,5 @@
 import requests
-import json  # Importieren, um den JSON-String zu parsen
+import json
 
 class LLMService:
     def __init__(self):

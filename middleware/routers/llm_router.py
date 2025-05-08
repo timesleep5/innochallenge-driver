@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from innovation.services.speech_service import SpeechService
-from innovation.services.llm_service import LLMService
+from middleware.services.speech_service import SpeechService
+from middleware.services.llm_service import LLMService
 
 router = APIRouter()
-speech_service = SpeechService()  # Singleton-Instanz
+speech_service = SpeechService()
 llm_service = LLMService()
 
 @router.post("/process")
