@@ -1,9 +1,0 @@
-endpoints:
-- prefix /v1/
-
- - /speech/start
- - /speech/stop/use
- - /speech/stop/load
- - /speech/stop/save
-
-
