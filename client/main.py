@@ -1,3 +1,5 @@
+from requests import HTTPError
+
 from client.factory.interface import IFactory
 from client.factory.pitch_factory import PitchFactory
 
@@ -14,8 +16,12 @@ if __name__ == "__main__":
     extracted_data = data_extractor.extract_data(transcribed_text)
     is_valid = data_validator.validate_data(extracted_data)
     if is_valid:
-        data_sender.send_data(extracted_data)
-        print("Data sent successfully.")
+        try:
+            data_sender.send_data(extracted_data)
+            print("Data sent successfully.")
+        except HTTPError as e:
+            print(f"Failed to send data: {e}")
+            exit(1)
     else:
         print("Data validation failed.")
         exit(1)
