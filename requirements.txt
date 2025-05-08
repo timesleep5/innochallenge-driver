@@ -2,3 +2,4 @@ requests
 sounddevice
 scipy
 openai
+fastapi
