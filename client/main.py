@@ -19,6 +19,7 @@ if __name__ == "__main__":
     print(f"Extracted data: {extracted_data}")
     is_valid = data_validator.validate_data(extracted_data)
     if is_valid:
+        print("Data is valid.")
         try:
             data_sender.send_data(extracted_data)
             print("Data sent successfully.")
