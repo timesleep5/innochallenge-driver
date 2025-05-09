@@ -9,8 +9,20 @@ class TestDataSender(unittest.TestCase):
     def setUp(self):
         self.data_sender = DataSender()
 
+    def test_send_data_patch_called_with_truck_drivers(self):
+        test_data = {
+            'id': 'D05',
+            'type': 'truck-drivers',
+            'active': True
+        }
+
+        response_status = self.data_sender.send_data(test_data)
+        valid_status_codes = [200, 404]
+
+        self.assertTrue(response_status in valid_status_codes)
+
     @patch('client.components.data_senders.data_sender.requests.patch')
-    def test_send_data_post_called_with_truck_drivers(self, mock_patch):
+    def test_send_data_mock_patch_called_with_truck_drivers(self, mock_patch):
         test_data = {
             'id': 'D01',
             'type': 'truck-drivers',
@@ -20,7 +32,7 @@ class TestDataSender(unittest.TestCase):
         self.run_patch_test(mock_patch, test_data)
 
     @patch('client.components.data_senders.data_sender.requests.patch')
-    def test_send_data_post_called_with_trucks(self, mock_patch):
+    def test_send_data_mock_patch_called_with_trucks(self, mock_patch):
         test_data = {
             'id': 'TK1',
             'type': 'trucks',
@@ -30,7 +42,7 @@ class TestDataSender(unittest.TestCase):
         self.run_patch_test(mock_patch, test_data)
 
     @patch('client.components.data_senders.data_sender.requests.patch')
-    def test_send_data_post_called_with_trailers(self, mock_patch):
+    def test_send_data_mock_patch_called_with_trailers(self, mock_patch):
         test_data = {
             'id': 'TR1',
             'type': 'trailers',
