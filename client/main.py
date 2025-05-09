@@ -12,6 +12,7 @@ if __name__ == "__main__":
     data_sender = process_factory.create_data_sender()
 
     sound_file_path = sound_file_provider.get_sound_file()
+    print(f"Sound file path: {sound_file_path}")
     transcribed_text = transcriptor.transcribe(sound_file_path)
     print(f"Transcribed text: {transcribed_text}")
     extracted_data = data_extractor.extract_data(transcribed_text)
