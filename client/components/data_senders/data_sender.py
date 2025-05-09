@@ -8,13 +8,13 @@ class DataSender(IDataSender):
     def __init__(self):
         self.base_url = backend_url
 
-    def send_data(self, data: dict) -> None:
+    def send_data(self, data: dict) -> int:
         url = self._build_url(data)
         payload = self._build_payload(data)
         headers = self._build_headers()
 
         response = requests.patch(url=url, json=payload, headers=headers)
-        response.raise_for_status()
+        return response.status_code
 
     def _build_url(self, data: dict) -> str:
         object_id = data.get('id')
