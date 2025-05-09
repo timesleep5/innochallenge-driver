@@ -36,19 +36,22 @@ class DataValidator(IDataValidator):
         }
 
     def validate_data(self, data: dict) -> bool:
-        if self._required_keys_exist(data):
+        if not self._required_keys_exist(data):
+            print("Validation failed: Missing required keys.")
             return False
 
         if not self._fields_are_valid(data):
+            print("Validation failed: One or more fields are invalid.")
             return False
 
         if not self._id_value_exists_in_database(data):
+            print(f"Validation failed: ID '{data.get('id')}' does not exist in the database.")
             return False
 
         return True
 
     def _required_keys_exist(self, data: dict) -> bool:
-        return set(data.keys()) != self.required_keys
+        return self.required_keys.issubset(data.keys())
 
     def _fields_are_valid(self, data: dict) -> bool:
         if not self._type_field_is_valid(data):
