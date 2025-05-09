@@ -1,4 +1,5 @@
 from client.components.data_extractors.interface import IDataExtractor
+from client.components.data_extractors.data_extractor import DataExtractor
 from client.components.data_senders.interface import IDataSender
 from client.components.data_validators.interface import IDataValidator
 from client.components.sound_file_providers.interface import ISoundFileProvider
@@ -15,7 +16,8 @@ class PitchFactory(IFactory):
         pass
 
     def create_data_extractor(self) -> IDataExtractor:
-        pass
+        llm_service_url = "http://127.0.0.1:8000/v1/llm/process"
+        return DataExtractor(llm_service_url)
 
     def create_data_validator(self) -> IDataValidator:
         pass
