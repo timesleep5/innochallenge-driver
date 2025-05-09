@@ -13,6 +13,7 @@ if __name__ == "__main__":
 
     sound_file_path = sound_file_provider.get_sound_file()
     transcribed_text = transcriptor.transcribe(sound_file_path)
+    print(f"Transcribed text: {transcribed_text}")
     extracted_data = data_extractor.extract_data(transcribed_text)
     is_valid = data_validator.validate_data(extracted_data)
     if is_valid:
