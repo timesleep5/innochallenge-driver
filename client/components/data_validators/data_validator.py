@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
-import requests
 from requests import HTTPError
 
 from client.components.data_validators.interface import IDataValidator
 from client.config.config import backend_truck_drivers_url, backend_trailers_url, backend_trucks_url
+from http_requests.client_interface import IClient
+from http_requests.http_client_provider import HttpClientProvider
 
 
 @dataclass
@@ -16,6 +17,7 @@ class TypeConfig:
 
 class DataValidator(IDataValidator):
     def __init__(self):
+        self.client: IClient = HttpClientProvider.get_client()
         self.required_keys = {'id', 'type', 'active'}
         self.types = {
             'truck-drivers': TypeConfig(
@@ -92,7 +94,7 @@ class DataValidator(IDataValidator):
         backend_url = type_config.backend_url
         backend_id_key = type_config.backend_id_key
         try:
-            response = requests.get(backend_url)
+            response = self.client.get(backend_url)
             response.raise_for_status()
             data = response.json()
             existing_ids = {object[backend_id_key] for object in data}

@@ -3,11 +3,15 @@ from typing import List, Set
 
 import requests
 
+from http_requests.client_interface import IClient
+from http_requests.http_client_provider import HttpClientProvider
 from middleware.schemas.trip import TripRequest, Trip, Pin
 
 
 class TripService:
     def __init__(self):
+        self.client: IClient = HttpClientProvider.get_client()
+
         self.core_optimizer_url = os.getenv("CORE_OPTIMIZER_URL")
         self.open_route_service_url = os.getenv("OPEN_ROUTE_SERVICE_URL")
         self.open_route_service_token = os.getenv("OPEN_ROUTE_SERVICE_TOKEN")
@@ -24,7 +28,7 @@ class TripService:
 
     def _get_location_coordinates_json(self) -> dict:
         url = f'{self.core_optimizer_url}/location-coordinates'
-        response = requests.get(url)
+        response = self.client.get(url)
         data = response.json()
         print(f'fetched {len(data)} location coordinates from database')
         return data
