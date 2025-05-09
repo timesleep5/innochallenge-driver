@@ -1,12 +1,10 @@
 import os
-import tempfile
-import wave
-from threading import Thread
-
-# import pyaudio
-import requests
 from dotenv import load_dotenv
-from fastapi import UploadFile
+import requests
+# import pyaudio
+import wave
+import tempfile
+from threading import Thread
 
 load_dotenv()
 
@@ -93,11 +91,16 @@ class SpeechService:
     #
     #     return {"message": "Die Sprachaufnahme wurde beendet und gespeichert.", "file_path": target_path}
 
-    def transcribe_recording(self, file: UploadFile):
-        if file.content_type != "audio/wav":
+    def transcribe_recording(self, filepath: str):
+        if not os.path.exists(filepath):
+            return {"error": "Die angegebene Datei existiert nicht."}
+
+        if not filepath.endswith(".wav"):
             return {"error": "Nur WAV-Dateien werden unterstützt."}
 
-        transcribed_text = self.send_to_azure(file.file)
+        with open(filepath, "rb") as audio_file:
+            transcribed_text = self.send_to_azure(audio_file)
+
         if transcribed_text:
             self.recognized_text = transcribed_text
             return {"message": "Die Datei wurde geladen und verarbeitet.", "transcription": transcribed_text}

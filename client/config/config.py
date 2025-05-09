@@ -8,7 +8,7 @@ def find_file(relative_path):
         raise FileNotFoundError(f"Die angegebene Datei wurde nicht gefunden: {file_path}")
     return file_path
 
-file_location = find_file("../../../data/bad_test_english/iamdriverp5.wav")
+file_location = find_file("../../data/right_test_english/driverdzero5.wav")
 
 backend_url = 'https://optimaloptimizer.thankfulbeach-22a876ac.westus2.azurecontainerapps.io/api/v1'
 backend_truck_drivers_url = f'{backend_url}/truck-drivers'
