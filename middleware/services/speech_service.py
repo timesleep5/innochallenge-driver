@@ -1,13 +1,15 @@
 import os
-from dotenv import load_dotenv
-import requests
-import pyaudio
-import wave
 import tempfile
+import wave
 from threading import Thread
+
+# import pyaudio
+import requests
+from dotenv import load_dotenv
 from fastapi import UploadFile
 
 load_dotenv()
+
 
 class SpeechService:
     _instance = None
@@ -30,66 +32,66 @@ class SpeechService:
             self.audio_stream = None
             self.frames = []
 
-    def start_recording(self, sample_rate=16000, channels=1, chunk_size=1024):
-        if self.is_recording:
-            return {"message": "Die Aufnahme läuft bereits."}
-
-        self.is_recording = True
-        self.frames = []
-        print("Die Sprachaufnahme wurde gestartet.")
-
-        p = pyaudio.PyAudio()
-        self.audio_stream = p.open(format=pyaudio.paInt16,
-                                   channels=channels,
-                                   rate=sample_rate,
-                                   input=True,
-                                   frames_per_buffer=chunk_size)
-
-        def record():
-            while self.is_recording:
-                data = self.audio_stream.read(chunk_size)
-                self.frames.append(data)
-
-        self.recording_thread = Thread(target=record)
-        self.recording_thread.start()
-
-        return {"message": "Die Sprachaufnahme wurde gestartet."}
-
-    def stop_recording(self):
-        if not self.is_recording:
-            return {"message": "Es läuft keine Aufnahme, die beendet werden kann."}
-
-        self.is_recording = False
-        self.recording_thread.join()
-        self.audio_stream.stop_stream()
-        self.audio_stream.close()
-        print("Die Sprachaufnahme wurde beendet.")
-
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
-            wf = wave.open(tmpfile.name, 'wb')
-            wf.setnchannels(1)
-            wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
-            wf.setframerate(16000)
-            wf.writeframes(b''.join(self.frames))
-            wf.close()
-            tmpfile_path = tmpfile.name
-
-        print(f"Audio gespeichert unter: {tmpfile_path} ({os.path.getsize(tmpfile_path)} Bytes)")
-        return tmpfile_path
-    
-    def save_recording(self):
-        tmpfile_path = self.stop_recording()
-
-        data_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
-        if not os.path.exists(data_directory):
-            os.makedirs(data_directory)
-
-        file_name = os.path.basename(tmpfile_path)
-        target_path = os.path.join(data_directory, file_name)
-
-        os.rename(tmpfile_path, target_path)
-
-        return {"message": "Die Sprachaufnahme wurde beendet und gespeichert.", "file_path": target_path}
+    # def start_recording(self, sample_rate=16000, channels=1, chunk_size=1024):
+    #     if self.is_recording:
+    #         return {"message": "Die Aufnahme läuft bereits."}
+    #
+    #     self.is_recording = True
+    #     self.frames = []
+    #     print("Die Sprachaufnahme wurde gestartet.")
+    #
+    #     p = pyaudio.PyAudio()
+    #     self.audio_stream = p.open(format=pyaudio.paInt16,
+    #                                channels=channels,
+    #                                rate=sample_rate,
+    #                                input=True,
+    #                                frames_per_buffer=chunk_size)
+    #
+    #     def record():
+    #         while self.is_recording:
+    #             data = self.audio_stream.read(chunk_size)
+    #             self.frames.append(data)
+    #
+    #     self.recording_thread = Thread(target=record)
+    #     self.recording_thread.start()
+    #
+    #     return {"message": "Die Sprachaufnahme wurde gestartet."}
+    #
+    # def stop_recording(self):
+    #     if not self.is_recording:
+    #         return {"message": "Es läuft keine Aufnahme, die beendet werden kann."}
+    #
+    #     self.is_recording = False
+    #     self.recording_thread.join()
+    #     self.audio_stream.stop_stream()
+    #     self.audio_stream.close()
+    #     print("Die Sprachaufnahme wurde beendet.")
+    #
+    #     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
+    #         wf = wave.open(tmpfile.name, 'wb')
+    #         wf.setnchannels(1)
+    #         wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
+    #         wf.setframerate(16000)
+    #         wf.writeframes(b''.join(self.frames))
+    #         wf.close()
+    #         tmpfile_path = tmpfile.name
+    #
+    #     print(f"Audio gespeichert unter: {tmpfile_path} ({os.path.getsize(tmpfile_path)} Bytes)")
+    #     return tmpfile_path
+    #
+    # def save_recording(self):
+    #     tmpfile_path = self.stop_recording()
+    #
+    #     data_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
+    #     if not os.path.exists(data_directory):
+    #         os.makedirs(data_directory)
+    #
+    #     file_name = os.path.basename(tmpfile_path)
+    #     target_path = os.path.join(data_directory, file_name)
+    #
+    #     os.rename(tmpfile_path, target_path)
+    #
+    #     return {"message": "Die Sprachaufnahme wurde beendet und gespeichert.", "file_path": target_path}
 
     def transcribe_recording(self, file: UploadFile):
         if file.content_type != "audio/wav":
