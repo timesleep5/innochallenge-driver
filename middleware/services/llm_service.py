@@ -1,11 +1,17 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class LLMService:
     def __init__(self):
-        # LLM API-Konfiguration
-        self.LLM_API_URL = "https://innovationazur3213328481.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview"
-        self.LLM_API_KEY = "G9cw5SDql7Tw5IMTnC8xv0e55RBOjA6D6xXUInhtm5IrcFe7qkaFJQQJ99BEACfhMk5XJ3w3AAAAACOGUNNO"
+        self.LLM_API_URL = os.getenv("LLM_API_URL")
+        self.LLM_API_KEY = os.getenv("LLM_API_KEY")
+
+        if not self.LLM_API_URL or not self.LLM_API_KEY:
+            raise ValueError("LLM_API_URL oder LLM_API_KEY ist nicht gesetzt.")
 
     def send_to_llm(self, text):
         """Sendet den Text an das LLM und gibt die strukturierte Antwort zurück."""
@@ -18,11 +24,32 @@ class LLMService:
                 {
                     "role": "system",
                     "content": (
-                        "Du bist ein Assistent, der wichtige Informationen aus Texten extrahiert. "
-                        "Extrahiere die folgenden Informationen aus dem Text und gib sie in einem JSON-Format zurück: "
-                        "1. Personalnummer, 2. Fahrtennummer, 3. Lastzugnummer, 4. Trailernummer, "
-                        "5. Name des Anrufers (falls genannt), 6. Grund für den Anruf. "
-                        "Falls eine Information nicht vorhanden ist, lasse das Feld leer."
+                        """You are tasked with validating input strings that describe entities of type Truck, Trailer, or Driver.
+                            Instructions:
+
+                            Identify the Entity Type and ID:
+
+                            Driver:
+                            - ID starts with an uppercase letter D.
+                            - For single-digit IDs, a leading zero is included (e.g., "D01").
+
+                            Truck and Trailer:
+                            - IDs are in uppercase letters TK for truck and TR for trailer.
+                            - No leading zeros are present (e.g., TK5).
+
+                            Determine the Active Status:
+                            - Analyze the accompanying description to ascertain if the entity is active.
+                            - A Driver may be inactive due to reasons like being sick.
+                            - A Trailer may be inactive if it's broken.
+                            - A Truck may be inactive due to maintenance or other issues.
+
+                            Output Format:
+                            Return a JSON object with the following fields:
+                            - "id": The entity's ID as provided.
+                            - "type": One of "truck-drivers", "trucks", or "trailers".
+                            - "active": A boolean indicating the entity's active status (true or false).
+
+                            If any information is missing or cannot be determined, use empty strings for those fields."""
                     )
                 },
                 {"role": "user", "content": text}
@@ -35,14 +62,17 @@ class LLMService:
 
         if response.status_code == 200:
             result = response.json()
-            # Extrahiere die Antwort aus der LLM-Antwort
             structured_response_str = result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
             try:
-                # Versuche, den JSON-String in ein echtes JSON-Objekt zu konvertieren
                 structured_response = json.loads(structured_response_str)
-                return {"structured_response": structured_response}
+
+                reduced_response = {
+                    "id": structured_response.get("id", ""),
+                    "type": structured_response.get("type", ""),
+                    "active": structured_response.get("active", False)
+                }
+                return reduced_response
             except json.JSONDecodeError:
-                # Falls die Antwort kein gültiges JSON ist, gebe den ursprünglichen String zurück
                 print("Fehler beim Parsen der LLM-Antwort als JSON.")
                 return {"error": "Die Antwort des LLM konnte nicht als JSON geparst werden.", "raw_response": structured_response_str}
         else:

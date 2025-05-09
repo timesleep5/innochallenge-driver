@@ -15,6 +15,7 @@ if __name__ == "__main__":
     transcribed_text = transcriptor.transcribe(sound_file_path)
     print(f"Transcribed text: {transcribed_text}")
     extracted_data = data_extractor.extract_data(transcribed_text)
+    print(f"Extracted data: {extracted_data}")
     is_valid = data_validator.validate_data(extracted_data)
     if is_valid:
         try:
