@@ -51,7 +51,7 @@ class DataValidator(IDataValidator):
         return True
 
     def _required_keys_exist(self, data: dict) -> bool:
-        return self.required_keys.issubset(data.keys())
+        return set(data.keys()) == self.required_keys
 
     def _fields_are_valid(self, data: dict) -> bool:
         if not self._type_field_is_valid(data):
