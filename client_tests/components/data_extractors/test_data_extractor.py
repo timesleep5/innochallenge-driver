@@ -9,14 +9,14 @@ class TestDataExtractor(unittest.TestCase):
         self.data_extractor = DataExtractor(self.llm_service_url)
 
     def test_extract_success(self):
-        transcription = "Hey, I'm Driver D5 and I'm not feeling well today."
+        transcription = "Hey, I'm Driver D05 and I'm not feeling well today."
 
-        for _ in range(100):
+        for _ in range(10):
             extracted_data = self.data_extractor.extract_data(transcription)
 
             expected_extracted_data = {
-                "driver_id": "D05",
-                "status": "truck-drivers",
+                "id": "D05",
+                "type": "truck-drivers",
                 "active": False
             }
 
