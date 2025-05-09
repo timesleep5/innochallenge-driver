@@ -13,7 +13,7 @@ class DataSender(IDataSender):
         payload = self._build_payload(data)
         headers = self._build_headers()
 
-        response = requests.patch(url=url, json=payload, headers=headers)
+        response = requests.post(url=url, json=payload, headers=headers)
         response.raise_for_status()
 
     def _build_url(self, data: dict) -> str:
